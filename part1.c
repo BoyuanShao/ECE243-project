@@ -255,13 +255,13 @@ int main(void)
         }
 
         if (thief_x >= 319-THIEF_WIDTH){
-            thief_dx = -thief_dx;
+            thief_dx = -abs(thief_dx);
         }else if (thief_x <= 0 + THIEF_WIDTH){
             thief_dx = abs(thief_dx);
         }
 
         if (police_x >= 319-POLICE_WIDTH){
-            police_dx = -police_dx;
+            police_dx = -abs(police_dx);
         }else if (police_x <= 0 + POLICE_WIDTH){
             police_dx = abs(police_dx);
         }
