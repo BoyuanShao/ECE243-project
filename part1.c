@@ -16,8 +16,7 @@
 #define START_X 10
 #define START_Y 10
 #define END_X   70
-#define END_Y   20
-int I = 0;
+#define END_Y   10
 
 volatile bool correct = 0;
 volatile int pixel_buffer_start; // global variable
@@ -216,7 +215,7 @@ int main(void)
             if(character == *display){
                 correct = 1;
                 int length = string_length(display);
-                clear_char(START_X, START_Y, END_X, END_Y);
+                plot_char(START_X + string_length(display) -1, START_Y, " ");
                 display++;
             }
         }
