@@ -17,6 +17,7 @@
 #define START_Y 10
 #define END_X   70
 #define END_Y   20
+int I = 0;
 
 volatile bool correct = 0;
 volatile int pixel_buffer_start; // global variable
