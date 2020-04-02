@@ -14,7 +14,7 @@
 #define POLICE_WIDTH 24
 #define POLICE_HEIGHT 25
 #define START_X 10
-#define START_Y 10
+#define START_Y 58
 #define END_X   70
 #define END_Y   10
 
@@ -186,7 +186,7 @@ int main(void)
     clear_screen();
 
     char character = 0;
-    char* display = "dr.tallman is a fantastic cleaner. he can clean the entire myhal centre within two minutes.";
+    char* display = "dr.tallman is a fantastic cleaner. he can clean the entire myhal centre within two minutes. dr.tallman is a fantastic cleaner. he can clean the entire myhal centre within two minutes.";
     volatile int * ps2_ptr = (int *)PS2_BASE;
     *ps2_ptr = 0xFF;       //drive the keyboard
     int ps2_data, RVALID;
@@ -196,13 +196,38 @@ int main(void)
 
     int thief_x = 0;
     int thief_y = 2;
-    int thief_dx = 10;
+    int thief_dx = 1;
     int police_x = 0;
-    int police_dx = 15;
+    int police_dx = 4;
     int police_y = 0;
+    int destination_x = 319 - THIEF_WIDTH;
+    int destination_y;      //don't know how to initialize this
     bool blink = true;
 
     while(1){
+        char response = 0;
+        /*Change to a initial interface later on*/
+        plot_char(30,30,"Press s to start the game");
+        ps2_data = *ps2_ptr;
+        RVALID = ps2_data & 0x8000;
+        response = key_to_ascii(ps2_data & 0xFF);
+        if(RVALID && response == 's'){
+            clear_screen();
+            break;
+        }
+    }
+
+    while(1){
+        if(police_x != 0 && thief_x != 0 && police_x == thief_x && police_y+2 == thief_y){
+            //Win. Change to a game-over picture later on.
+            *LED = 0b111110000;
+            break;
+        }
+        if(thief_x == destination_x /*&& thief_y == destination_y*/){
+            //Lose. Change to a game-over picture later on.
+            *LED = 0b000001111;
+            break;
+        }
         correct = 0;
         ps2_data = *ps2_ptr;
         *LED = 0;
