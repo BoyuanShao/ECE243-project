@@ -19390,7 +19390,7 @@ int main(void)
     *ps2_ptr = 0xFF;       //drive the keyboard
     int ps2_data, RVALID;
 
-    int thief_x = 0;
+    int thief_x = 5;
     int thief_y = 175;
     int thief_dx = 13;
     int thief_dy = 13;
@@ -19422,7 +19422,7 @@ int main(void)
     while(ingame){
         
         if(police_x != 0 && thief_x != 0 && police_x == thief_x && police_y == thief_y){
-            *LED = 0b111110000;
+            *LED = 0b100000000;
             clear_screen();
             draw_win(); // indicate in the picture that the user can press 'r' to restart. Otherwise the program stops here
                 while(1){
@@ -19437,8 +19437,12 @@ int main(void)
                 }
 
         }
-        if(thief_x >=148 && thief_x+THIEF_WIDTH <= 172 && thief_y <= 0-THIEF_HEIGHT){
-            *LED = 0b000001111;
+        if(loss){
+            loss = 0;
+             thief_x = 5;
+             thief_y = 175;
+             police_x = 0;
+             police_y = 175;
             clear_screen();
             draw_loss();
             while(1){ // indicate in the picture that the user can press 'r' to restart. Otherwise the program stops here
@@ -19521,42 +19525,128 @@ int main(void)
 
 
 /*------------------------------------Thief Motion------------------------------*/
-        if (thief_x >= 319-THIEF_WIDTH){
-            thief_dx = -abs(thief_dx);
-        }else if (thief_x <= 0 + THIEF_WIDTH){
-            thief_dx = abs(thief_dx);
-        }
 
         const int corner_x_1 = 65 - THIEF_WIDTH;
         const int corner_y_1 = 175;
 
-        const int corner_x_2 = corner_x_1 + thief_dx;
+        const int corner_x_2 = corner_x_1;
         const int corner_y_2 = 33;
 
-        const int corner_x_3 = corner_x_2 + 35;
+        const int corner_x_3 = corner_x_2 + 45;
         const int corner_y_3 = corner_y_2;
 
         const int corner_x_4 = corner_x_3;
-        const int corner_y_4 = 80;
+        const int corner_y_4 = corner_y_3 + 60;
+
+        const int corner_x_5 = corner_x_4 + 70;
+        const int corner_y_5 = corner_y_4;
+
+        const int corner_x_6 = corner_x_5;
+        const int corner_y_6 = corner_y_5 + 30;
+
+        const int corner_x_7 = corner_x_6 - 50;
+        const int corner_y_7 = corner_y_6;
+
+        const int corner_x_8 = corner_x_7;
+        const int corner_y_8 = corner_y_7 + 40;
+
+        const int corner_x_9 = corner_x_8 + 160;
+        const int corner_y_9 = corner_y_8;
+
+        const int corner_x_10 = corner_x_9;
+        const int corner_y_10 = corner_y_9 - 30;
+
+        const int corner_x_11 = corner_x_10 - 50;
+        const int corner_y_11 = corner_y_10;
+
+        const int corner_x_12 = corner_x_11;
+        const int corner_y_12 = corner_y_11 - 40;
+
+        const int corner_x_13 = corner_x_12 + 50;
+        const int corner_y_13 = corner_y_12;
+
+        const int corner_x_14 = corner_x_13;
+        const int corner_y_14 = corner_y_12 - 50;
+
+        const int corner_x_15 = corner_x_14 - 120;
+        const int corner_y_15 = corner_y_14;
+
+        const int destination_x = corner_x_15;
+        const int destination_y = 0;
 
 
-        //
        if(thief_x <= corner_x_1 && thief_y == corner_y_1){
            thief_x += thief_dx;
        }
 
-       else if(thief_x == corner_x_2 && thief_y >= corner_y_2){
-
+       else if(thief_x >= corner_x_2 && thief_x <= corner_x_3 && thief_y >= corner_y_2){
            thief_y -= thief_dy;
        }
 
-       else if(thief_x <= corner_x_3){
+       else if(thief_x <= corner_x_3 && thief_y <= corner_y_3){
            thief_x += thief_dx;
        }
 
-       else if(thief_y <= corner_y_4){
+       else if(thief_x <= corner_x_4 + thief_dx && thief_y <= corner_y_4){
            thief_y += thief_dy;
        }
+
+       else if(thief_x <= corner_x_5 && thief_y < corner_y_6 && thief_y > corner_y_15){
+           thief_x += thief_dx;
+       }
+
+       else if(thief_x <= corner_x_6 + thief_dx && thief_y <= corner_y_6 && thief_y >= corner_y_5){
+           thief_y += thief_dy;
+       }
+
+       else if(thief_x <= corner_x_6 + thief_dx && thief_x >= corner_x_7 && thief_y >= corner_y_7 && thief_y < corner_y_8){
+           thief_x -= thief_dx;
+       }
+
+       else if(thief_x <= corner_x_8 && thief_y <= corner_y_8){
+           thief_y += thief_dy;
+       }
+
+       else if(thief_x <= corner_x_9 && thief_y >= corner_y_9){
+           thief_x += thief_dx;
+       }
+
+       else if(thief_x >= corner_x_10 && thief_y >= corner_y_10){
+           thief_y -= thief_dy;
+       }
+
+       else if(thief_x >= corner_x_11 && thief_y >= corner_y_11 - thief_dy){
+           thief_x -= thief_dx;
+       }
+
+       else if(thief_x >= corner_x_12 - thief_dx && thief_y >= corner_y_12){
+           thief_y -= thief_dy;
+       }
+
+       else if(thief_x <= corner_x_13 && thief_y >= corner_y_13 - thief_dy){
+           thief_x += thief_dx;
+       }
+
+       else if(thief_x >= corner_x_14 && thief_y >= corner_y_14){
+           thief_y -= thief_dy;
+       }
+
+       else if(thief_x >= corner_x_15 && thief_y >= corner_y_15 - thief_dy){
+           thief_x -= thief_dx;
+       }
+
+       else if(thief_x >= destination_x - thief_dx && thief_y >= destination_y){
+           thief_y -= thief_dy;
+       }
+       //game over -- loss
+       else if(thief_x >= destination_x - thief_dx && thief_y <= destination_y){
+           loss = 1;
+       }
+
+
+
+
+
 
 /*------------------------------------Thief Motion------------------------------*/
         wait_for_vsync();
