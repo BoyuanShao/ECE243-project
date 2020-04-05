@@ -19326,9 +19326,6 @@ int win_interface[] = {
 #endif
 
 
-
-
-
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -19354,6 +19351,18 @@ int win_interface[] = {
 volatile bool correct = 0;
 volatile int pixel_buffer_start; // global variable
 short int const black = 0;
+int thief_x = 30;
+int thief_y = 175;
+int thief_dx = 1;
+int thief_dy = 1;
+int police_dy = 3;
+int police_x = 0;
+int police_dx = 3;
+int police_y = 175;
+bool start = true;
+bool ingame = false;
+bool win = false;
+bool loss = false;
 void plot_pixel(int x, int y, short int line_color);
 void clear_screen();
 void draw_line(int x_1, int y_1, int x_2, int y_2, short int line_color);
@@ -19366,6 +19375,8 @@ void wait_for_vsync();
 void draw_start();
 void draw_loss();
 void draw_win();
+void draw_thief();
+void draw_police();
 
 int main(void)
 {
@@ -19385,33 +19396,25 @@ int main(void)
     clear_screen();
 
     char character = 0;
-    char* display = "ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss";
+    char* display = "although dr.tallman appears to be a communication instructor, his real job is actually chief cleaner of university of toronto. he can clean the entire campus within two hours - with just a "
+                    "mop in hand. in his free time, dr.tallman becomes a delivery guy in uber eats. the competiton between he and olivier trescases is fierce - olivier has a yellow electric car but dr.tallman doesn't."
+                    "so what does dr.tallman do? he asks his friend, professor micheal seica for help."
+                    " ";
     volatile int * ps2_ptr = (int *)PS2_BASE;
     *ps2_ptr = 0xFF;       //drive the keyboard
     int ps2_data, RVALID;
 
-    int thief_x = 5;
-    int thief_y = 175;
-    int thief_dx = 13;
-    int thief_dy = 13;
-    int police_dy = 1;
-    int police_x = 0;
-    int police_dx = 4;
-    int police_y = 0;
-    bool start = true;
-    bool ingame = false;
-    bool win = false;
-    bool loss = false;
+
 
     if (start){
         draw_start();
-        plot_char(30, 20,"Press s to start the game");
+        plot_char(30, 20,"Press enter to start the game");
         while(1){
             char response = 0;
             ps2_data = *ps2_ptr;
             RVALID = ps2_data & 0x8000;
-            response = key_to_ascii(ps2_data & 0xFF);
-            if(RVALID && response == 's'){
+            response = ps2_data & 0xFF;
+            if(RVALID && response == 0x5A){
                 clear_screen();
                 ingame = true;
                 break;
@@ -19420,17 +19423,24 @@ int main(void)
     }
     
     while(ingame){
-        
-        if(police_x != 0 && thief_x != 0 && police_x == thief_x && police_y == thief_y){
-            *LED = 0b100000000;
+        if(win){
+            win = 0;
+            thief_x = 30;
+            thief_y = 175;
+            police_x = 0;
+            police_y = 175;
+            display = "although dr.tallman appears to be a communication instructor, his real job is actually chief cleaner of university of toronto. he can clean the entire campus within two hours - with just a "
+                            "mop in hand. in his free time, dr.tallman becomes a delivery guy in uber eats. the competiton between he and olivier trescases is fierce - olivier has a yellow electric car but dr.tallman doesn't."
+                            "so what does dr.tallman do? he asks his friend, professor micheal seica for help."
+                            " ";
             clear_screen();
             draw_win(); // indicate in the picture that the user can press 'r' to restart. Otherwise the program stops here
                 while(1){
                     char response = 0;
                     ps2_data = *ps2_ptr;
                     RVALID = ps2_data & 0x8000;
-                    response = key_to_ascii(ps2_data & 0xFF);
-                    if(RVALID && response == 'r'){
+                    response =ps2_data & 0xFF;
+                    if(RVALID && response == 0x5A){
                         clear_screen();
                         break;
                     }
@@ -19439,18 +19449,18 @@ int main(void)
         }
         if(loss){
             loss = 0;
-             thief_x = 5;
-             thief_y = 175;
-             police_x = 0;
-             police_y = 175;
+            thief_x = 30;
+            thief_y = 175;
+            police_x = 0;
+            police_y = 175;
             clear_screen();
             draw_loss();
             while(1){ // indicate in the picture that the user can press 'r' to restart. Otherwise the program stops here
                 char response = 0;
                 ps2_data = *ps2_ptr;
                 RVALID = ps2_data & 0x8000;
-                response = key_to_ascii(ps2_data & 0xFF);
-                if(RVALID && response == 'r'){
+                response =ps2_data & 0xFF;
+                if(RVALID && response == 0x5A){
                     clear_screen();
                     break;
                 }
@@ -19511,143 +19521,16 @@ int main(void)
             }
         }
  /*------------------------------------Police Motion------------------------------*/
-        if (police_x >= 319-POLICE_WIDTH){
-             police_dx = -abs(police_dx);
-        }else if (police_x <= 0 + POLICE_WIDTH){
-            police_dx = abs(police_dx);
-        }
 
         if (correct == 1){
-            police_x += police_dx;
+           draw_police();
         }
 /*------------------------------------Police Motion------------------------------*/
 
 
 
 /*------------------------------------Thief Motion------------------------------*/
-
-        const int corner_x_1 = 65 - THIEF_WIDTH;
-        const int corner_y_1 = 175;
-
-        const int corner_x_2 = corner_x_1;
-        const int corner_y_2 = 33;
-
-        const int corner_x_3 = corner_x_2 + 45;
-        const int corner_y_3 = corner_y_2;
-
-        const int corner_x_4 = corner_x_3;
-        const int corner_y_4 = corner_y_3 + 60;
-
-        const int corner_x_5 = corner_x_4 + 70;
-        const int corner_y_5 = corner_y_4;
-
-        const int corner_x_6 = corner_x_5;
-        const int corner_y_6 = corner_y_5 + 30;
-
-        const int corner_x_7 = corner_x_6 - 50;
-        const int corner_y_7 = corner_y_6;
-
-        const int corner_x_8 = corner_x_7;
-        const int corner_y_8 = corner_y_7 + 40;
-
-        const int corner_x_9 = corner_x_8 + 160;
-        const int corner_y_9 = corner_y_8;
-
-        const int corner_x_10 = corner_x_9;
-        const int corner_y_10 = corner_y_9 - 30;
-
-        const int corner_x_11 = corner_x_10 - 50;
-        const int corner_y_11 = corner_y_10;
-
-        const int corner_x_12 = corner_x_11;
-        const int corner_y_12 = corner_y_11 - 40;
-
-        const int corner_x_13 = corner_x_12 + 50;
-        const int corner_y_13 = corner_y_12;
-
-        const int corner_x_14 = corner_x_13;
-        const int corner_y_14 = corner_y_12 - 50;
-
-        const int corner_x_15 = corner_x_14 - 120;
-        const int corner_y_15 = corner_y_14;
-
-        const int destination_x = corner_x_15;
-        const int destination_y = 0;
-
-
-       if(thief_x <= corner_x_1 && thief_y == corner_y_1){
-           thief_x += thief_dx;
-       }
-
-       else if(thief_x >= corner_x_2 && thief_x <= corner_x_3 && thief_y >= corner_y_2){
-           thief_y -= thief_dy;
-       }
-
-       else if(thief_x <= corner_x_3 && thief_y <= corner_y_3){
-           thief_x += thief_dx;
-       }
-
-       else if(thief_x <= corner_x_4 + thief_dx && thief_y <= corner_y_4){
-           thief_y += thief_dy;
-       }
-
-       else if(thief_x <= corner_x_5 && thief_y < corner_y_6 && thief_y > corner_y_15){
-           thief_x += thief_dx;
-       }
-
-       else if(thief_x <= corner_x_6 + thief_dx && thief_y <= corner_y_6 && thief_y >= corner_y_5){
-           thief_y += thief_dy;
-       }
-
-       else if(thief_x <= corner_x_6 + thief_dx && thief_x >= corner_x_7 && thief_y >= corner_y_7 && thief_y < corner_y_8){
-           thief_x -= thief_dx;
-       }
-
-       else if(thief_x <= corner_x_8 && thief_y <= corner_y_8){
-           thief_y += thief_dy;
-       }
-
-       else if(thief_x <= corner_x_9 && thief_y >= corner_y_9){
-           thief_x += thief_dx;
-       }
-
-       else if(thief_x >= corner_x_10 && thief_y >= corner_y_10){
-           thief_y -= thief_dy;
-       }
-
-       else if(thief_x >= corner_x_11 && thief_y >= corner_y_11 - thief_dy){
-           thief_x -= thief_dx;
-       }
-
-       else if(thief_x >= corner_x_12 - thief_dx && thief_y >= corner_y_12){
-           thief_y -= thief_dy;
-       }
-
-       else if(thief_x <= corner_x_13 && thief_y >= corner_y_13 - thief_dy){
-           thief_x += thief_dx;
-       }
-
-       else if(thief_x >= corner_x_14 && thief_y >= corner_y_14){
-           thief_y -= thief_dy;
-       }
-
-       else if(thief_x >= corner_x_15 && thief_y >= corner_y_15 - thief_dy){
-           thief_x -= thief_dx;
-       }
-
-       else if(thief_x >= destination_x - thief_dx && thief_y >= destination_y){
-           thief_y -= thief_dy;
-       }
-       //game over -- loss
-       else if(thief_x >= destination_x - thief_dx && thief_y <= destination_y){
-           loss = 1;
-       }
-
-
-
-
-
-
+        draw_thief();
 /*------------------------------------Thief Motion------------------------------*/
         wait_for_vsync();
 
@@ -19867,5 +19750,252 @@ void wait_for_vsync(){
     status = *(pixel_ctrl_ptr + 3);
     while ((status & 0x0001) != 0){
         status = *(pixel_ctrl_ptr + 3);
+    }
+}
+
+void draw_thief(){
+    const int corner_x_1 = 65 - THIEF_WIDTH;
+    const int corner_y_1 = 175;
+
+    const int corner_x_2 = corner_x_1;
+    const int corner_y_2 = 30;
+
+    const int corner_x_3 = corner_x_2 + 50;
+    const int corner_y_3 = corner_y_2;
+
+    const int corner_x_4 = corner_x_3;
+    const int corner_y_4 = corner_y_3 + 71;
+
+    const int corner_x_5 = corner_x_4 + 70;
+    const int corner_y_5 = corner_y_4;
+
+    const int corner_x_6 = corner_x_5;
+    const int corner_y_6 = corner_y_5 + 36;
+
+    const int corner_x_7 = corner_x_6 - 67;
+    const int corner_y_7 = corner_y_6;
+
+    const int corner_x_8 = corner_x_7;
+    const int corner_y_8 = corner_y_7 + 37;
+
+    const int corner_x_9 = corner_x_8 + 182;
+    const int corner_y_9 = corner_y_8;
+
+    const int corner_x_10 = corner_x_9;
+    const int corner_y_10 = corner_y_9 - 45;
+
+    const int corner_x_11 = corner_x_10 - 62;
+    const int corner_y_11 = corner_y_10;
+
+    const int corner_x_12 = corner_x_11;
+    const int corner_y_12 = corner_y_11 - 45;
+
+    const int corner_x_13 = corner_x_12 + 61;
+    const int corner_y_13 = corner_y_12;
+
+    const int corner_x_14 = corner_x_13;
+    const int corner_y_14 = corner_y_12 - 48;
+
+    const int corner_x_15 = corner_x_14 - 130;
+    const int corner_y_15 = corner_y_14;
+
+    const int destination_x = corner_x_15;
+    const int destination_y = 0;
+
+
+    if(thief_x <= corner_x_1 && thief_y == corner_y_1){
+        thief_x += thief_dx;
+    }
+
+    else if(thief_x <= corner_x_2 + thief_dx && thief_y >= corner_y_2){
+        thief_y -= thief_dy;
+    }
+
+    else if(thief_x <= corner_x_3 && thief_y <= corner_y_3){
+        thief_x += thief_dx;
+    }
+
+    else if(thief_x <= corner_x_4 + thief_dx && thief_y <= corner_y_4){
+        thief_y += thief_dy;
+    }
+
+    else if(thief_x <= corner_x_5 && thief_y < corner_y_6 && thief_y > corner_y_15){
+        thief_x += thief_dx;
+    }
+
+    else if(thief_x <= corner_x_6 + thief_dx && thief_y <= corner_y_6 && thief_y >= corner_y_5){
+        thief_y += thief_dy;
+    }
+
+    else if(thief_x <= corner_x_6 + thief_dx && thief_x >= corner_x_7 && thief_y >= corner_y_7 && thief_y < corner_y_8){
+        thief_x -= thief_dx;
+    }
+
+    else if(thief_x <= corner_x_8 && thief_y <= corner_y_8){
+        thief_y += thief_dy;
+    }
+
+    else if(thief_x <= corner_x_9 && thief_y >= corner_y_9){
+        thief_x += thief_dx;
+    }
+
+    else if(thief_x >= corner_x_10 && thief_y >= corner_y_10){
+        thief_y -= thief_dy;
+    }
+
+    else if(thief_x >= corner_x_11 && thief_y >= corner_y_11 - thief_dy){
+        thief_x -= thief_dx;
+    }
+
+    else if(thief_x >= corner_x_12 - thief_dx && thief_y >= corner_y_12){
+        thief_y -= thief_dy;
+    }
+
+    else if(thief_x <= corner_x_13 && thief_y >= corner_y_13 - thief_dy){
+        thief_x += thief_dx;
+    }
+
+    else if(thief_x >= corner_x_14 && thief_y >= corner_y_14){
+        thief_y -= thief_dy;
+    }
+
+    else if(thief_x >= corner_x_15 && thief_y >= corner_y_15 - thief_dy){
+        thief_x -= thief_dx;
+    }
+
+    else if(thief_x >= destination_x - thief_dx && thief_y >= destination_y){
+        thief_y -= thief_dy;
+    }
+        //game over -- loss
+    else if(thief_x >= destination_x - thief_dx && thief_y <= destination_y){
+        loss = 1;
+    }
+}
+void draw_police(){
+    const int corner_x_1 = 65 - POLICE_WIDTH;
+    const int corner_y_1 = 175;
+
+    const int corner_x_2 = corner_x_1;
+    const int corner_y_2 = 30;
+
+    const int corner_x_3 = corner_x_2 + 50;
+    const int corner_y_3 = corner_y_2;
+
+    const int corner_x_4 = corner_x_3;
+    const int corner_y_4 = corner_y_3 + 71;
+
+    const int corner_x_5 = corner_x_4 + 70;
+    const int corner_y_5 = corner_y_4;
+
+    const int corner_x_6 = corner_x_5;
+    const int corner_y_6 = corner_y_5 + 36;
+
+    const int corner_x_7 = corner_x_6 - 67;
+    const int corner_y_7 = corner_y_6;
+
+    const int corner_x_8 = corner_x_7;
+    const int corner_y_8 = corner_y_7 + 37;
+
+    const int corner_x_9 = corner_x_8 + 182;
+    const int corner_y_9 = corner_y_8;
+
+    const int corner_x_10 = corner_x_9;
+    const int corner_y_10 = corner_y_9 - 45;
+
+    const int corner_x_11 = corner_x_10 - 62;
+    const int corner_y_11 = corner_y_10;
+
+    const int corner_x_12 = corner_x_11;
+    const int corner_y_12 = corner_y_11 - 45;
+
+    const int corner_x_13 = corner_x_12 + 61;
+    const int corner_y_13 = corner_y_12;
+
+    const int corner_x_14 = corner_x_13;
+    const int corner_y_14 = corner_y_12 - 48;
+
+    const int corner_x_15 = corner_x_14 - 130;
+    const int corner_y_15 = corner_y_14;
+
+    const int destination_x = corner_x_15;
+    const int destination_y = 0;
+
+
+    if(police_x <= corner_x_1 && police_y == corner_y_1){
+        police_x += police_dx;
+    }
+
+    else if(police_x <= corner_x_2 + police_dx && police_y >= corner_y_2){
+        police_y -= police_dy;
+    }
+
+    else if(police_x <= corner_x_3 && police_y <= corner_y_3){
+        police_x += police_dx;
+    }
+
+    else if(police_x <= corner_x_4 + police_dx && police_y <= corner_y_4){
+        police_y += police_dy;
+    }
+
+    else if(police_x <= corner_x_5 && police_y < corner_y_6 && police_y > corner_y_15){
+        police_x += police_dx;
+    }
+
+    else if(police_x <= corner_x_6 + police_dx && police_y <= corner_y_6 && police_y >= corner_y_5){
+        police_y += police_dy;
+    }
+
+    else if(police_x <= corner_x_6 + police_dx && police_x >= corner_x_7 && police_y >= corner_y_7 && police_y < corner_y_8){
+        police_x -= police_dx;
+    }
+
+    else if(police_x <= corner_x_8 && police_y <= corner_y_8){
+        police_y += police_dy;
+    }
+
+    else if(police_x <= corner_x_9 && police_y >= corner_y_9){
+        police_x += police_dx;
+    }
+
+    else if(police_x >= corner_x_10 && police_y >= corner_y_10){
+        police_y -= police_dy;
+    }
+
+    else if(police_x >= corner_x_11 && police_y >= corner_y_11 - police_dy){
+        police_x -= police_dx;
+    }
+
+    else if(police_x >= corner_x_12 - police_dx && police_y >= corner_y_12){
+        police_y -= police_dy;
+    }
+
+    else if(police_x <= corner_x_13 && police_y >= corner_y_13 - police_dy){
+        police_x += police_dx;
+    }
+
+    else if(police_x >= corner_x_14 && police_y >= corner_y_14){
+        police_y -= police_dy;
+    }
+
+    else if(police_x >= corner_x_15 && police_y >= corner_y_15 - police_dy){
+        police_x -= police_dx;
+    }
+
+    else if(police_x >= destination_x - police_dx && police_y >= destination_y){
+        police_y -= police_dy;
+    }
+
+    //check win condtion
+    for(int i=0; i<=POLICE_WIDTH-6; i++){
+        for(int j=0; j<=POLICE_HEIGHT-6; j++){
+            for(int k=0; k<=THIEF_WIDTH-6; k++){
+                for(int l=0; l<=THIEF_HEIGHT-6;l++){
+                    if((police_x + i == thief_x + k) && (police_y + j == thief_y + l)){
+                        win = 1;
+                        return;
+                    }
+                }
+            }
+        }
     }
 }
